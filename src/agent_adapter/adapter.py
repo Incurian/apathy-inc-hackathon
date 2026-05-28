@@ -12,6 +12,7 @@ from .observation_builder import build_observation
 from .action_parser import parse_and_validate_action
 from .fallback import handle_agent_response
 from .logging import log_decision
+from ..sim.models import MatchState
 import time
 
 logger = logging.getLogger(__name__)
@@ -137,6 +138,11 @@ class AgentAdapter:
             logger.warning("Simulation state not available, returning hold")
             return {"type": "hold"}, "Simulation state not available"
         
+        # Ensure simulation state is a MatchState
+        if not isinstance(self._simulation_state, MatchState):
+            logger.warning("Simulation state is not MatchState, returning hold")
+            return {"type": "hold"}, "Invalid simulation state type"
+        
         # Get the faction object
         faction = self._get_faction_object(faction_id)
         if not faction:
@@ -144,14 +150,11 @@ class AgentAdapter:
             return {"type": "hold"}, f"Faction {faction_id} not found"
         
         try:
-            # Build observation for the agent
+            # Build observation for the agent using new interface
             observation = build_observation(
-                match_id=self._simulation_state.match_id,
-                tick=tick,
-                time_remaining_sec=time_remaining_sec,
-                factions=self._simulation_state.factions,
+                match_state=self._simulation_state,
                 requesting_faction_id=faction_id,
-                events=getattr(self._simulation_state, 'recent_events', [])
+                recent_events=[e.to_dict() for e in self._simulation_state.events[-10:]]
             )
             
             # Record start time for timeout handling
@@ -186,7 +189,7 @@ class AgentAdapter:
                 observation_summary=log_entry["observationSummary"],
                 raw_response=raw_response,
                 parsed_action_or_failure=log_entry["parsedActionOrFailure"],
-                latencyMs=log_entry["latencyMs"]
+                latency_ms=log_entry["latencyMs"]
             )
             
             # Determine if this was a fallback
@@ -211,8 +214,10 @@ class AgentAdapter:
         if self._simulation_state is None:
             return None
             
-        factions = getattr(self._simulation_state, 'factions', {})
-        return factions.get(faction_id)
+        if not isinstance(self._simulation_state, MatchState):
+            return None
+            
+        return self._simulation_state.factions.get(faction_id)
     
     # Methods for integration with actual MCP client (to be implemented when MCP client is available)
     async def _get_agent_action_async(

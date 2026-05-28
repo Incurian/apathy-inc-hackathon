@@ -12,10 +12,10 @@ from src.agent_adapter.models import Observation, Action, LegalAction, Site, Fac
 from src.agent_adapter.observation_builder import ObservationBuilder
 from src.agent_adapter.action_parser import ActionParser
 from src.agent_adapter.fallback import FallbackHandler
-from src.agent_adapter.logging import DecisionLogger, DecisionLogEntry, get_decision_logger, log_decision
+from src.agent_adapter.logging import DecisionLogger, DecisionLogEntry, get_decision_logger, log_decision, get_latest_decision
 
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures" / "agent_adapter"
+FIXTURES_DIR = Path(__file__).parent.parent / "fixtures" / "agent_adapter"
 
 
 class TestObservationSchema:
@@ -33,7 +33,7 @@ class TestObservationSchema:
         observation = Observation(**data)
         assert observation.match["matchId"] == "match-001"
         assert observation.match["tick"] == 120
-        assert observation.self.factionId == "red"
+        assert observation.self.id == "red"
         assert len(observation.legalActions) == 2
     
     def test_observation_has_required_fields(self):
@@ -58,7 +58,7 @@ class TestObservationSchema:
         assert "timeRemainingSec" in observation.match
         
         # Self state
-        assert observation.self.factionId == "red"
+        assert observation.self.id == "red"
         assert observation.self.population >= 0
         assert observation.self.score >= 0
         assert observation.self.status in ["active", "crippled", "eliminated"]
@@ -164,7 +164,7 @@ class TestFallbackHandler:
         observation = Observation(
             match={"matchId": "test", "tick": 100, "timeRemainingSec": 300},
             self=FactionState(
-                factionId="red",
+                id="red",
                 population=100,
                 score=50,
                 status="active",
@@ -195,7 +195,7 @@ class TestFallbackHandler:
         observation = Observation(
             match={"matchId": "test", "tick": 100, "timeRemainingSec": 300},
             self=FactionState(
-                factionId="red",
+                id="red",
                 population=100,
                 score=50,
                 status="active",
@@ -225,7 +225,7 @@ class TestFallbackHandler:
         observation = Observation(
             match={"matchId": "test", "tick": 100, "timeRemainingSec": 300},
             self=FactionState(
-                factionId="red",
+                id="red",
                 population=100,
                 score=50,
                 status="active",

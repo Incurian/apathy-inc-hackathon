@@ -4,7 +4,7 @@ Based on SPEC.md Section 14: Agent Player Interface.
 """
 
 from typing import List, Literal, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class Site(BaseModel):
@@ -111,12 +111,17 @@ class Action(BaseModel):
     MVP has exactly one top-level `action`, not an array.
     Based on SPEC.md action response shape.
     """
-    action: Literal[{"type": "hold"}, {"type": "launch", "from": str, "target": str}]
+    action: dict
     comment: Optional[str] = None
 
-    @validator('action')
+    @field_validator('action')
+    @classmethod
     def validate_action_structure(cls, v):
         """Ensure action has correct structure."""
+        if not isinstance(v, dict):
+            raise ValueError("Action must be a dictionary")
+        if "type" not in v:
+            raise ValueError("Action must have a 'type' field")
         if v["type"] == "hold":
             if len(v) != 1:
                 raise ValueError("Hold action must only contain 'type' field")

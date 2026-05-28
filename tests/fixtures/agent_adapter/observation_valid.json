@@ -5,7 +5,7 @@
     "timeRemainingSec": 214
   },
   "self": {
-    "factionId": "red",
+    "id": "red",
     "population": 240,
     "score": 180,
     "status": "active",

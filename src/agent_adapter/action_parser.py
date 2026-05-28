@@ -5,7 +5,7 @@ Based on SPEC.md Section 14: Agent Player Interface.
 
 from typing import Dict, List, Optional, Tuple
 from .models import Action
-from ..sim.models import Faction, SimulationState  # Assuming these exist or will be created
+from ..sim.models import MatchState, Faction, Node, EntityType
 
 
 class ActionParseError(Exception):
@@ -24,8 +24,8 @@ class ActionParser:
     @staticmethod
     def parse_and_validate(
         raw_response: str,
-        faction: 'Faction',
-        simulation_state: 'SimulationState'
+        faction: Faction,
+        match_state: MatchState
     ) -> Tuple[Dict, Optional[str]]:
         """
         Parse and validate agent action response.
@@ -33,7 +33,7 @@ class ActionParser:
         Args:
             raw_response: Raw string response from agent
             faction: The faction attempting the action
-            simulation_state: Current simulation state for validation
+            match_state: Current match state for validation
             
         Returns:
             Tuple of (parsed_action_dict, error_reason)
@@ -64,7 +64,7 @@ class ActionParser:
         
         # Step 4: Validate action content against game state
         try:
-            ActionParser._validate_action_content(validated_action, faction, simulation_state)
+            ActionParser._validate_action_content(validated_action, faction, match_state)
             return validated_action, None
         except ActionValidationError as e:
             return {"type": "hold"}, str(e)
@@ -74,8 +74,8 @@ class ActionParser:
     @staticmethod
     def _validate_action_content(
         action: Dict,
-        faction: 'Faction',
-        simulation_state: 'SimulationState'
+        faction: Faction,
+        match_state: MatchState
     ) -> None:
         """
         Validate action content against current game state.
@@ -95,44 +95,38 @@ class ActionParser:
             if not from_silo_id or not target_id:
                 raise ActionValidationError("Launch action missing 'from' or 'target' field")
             
-            # Find the silo
-            silo = None
-            for site in faction.sites:
-                if site.id == from_silo_id and site.type == "silo":
-                    silo = site
+            # Find the silo in faction's owned sites
+            silo_node = None
+            for node_id in faction.owned_sites:
+                node = match_state.nodes.get(node_id)
+                if node and node.id == from_silo_id and node.type == EntityType.SILO:
+                    silo_node = node
                     break
             
-            if not silo:
+            if not silo_node:
                 raise ActionValidationError(f"Silo '{from_silo_id}' not found or not owned by faction")
             
-            if silo.destroyed:
+            if silo_node.status != "active":
                 raise ActionValidationError(f"Silo '{from_silo_id}' is destroyed")
             
-            if silo.ammo <= 0:
+            if silo_node.ammo <= 0:
                 raise ActionValidationError(f"Silo '{from_silo_id}' has no ammo")
             
-            if silo.cooldown > 0:
+            if silo_node.cooldown > 0:
                 raise ActionValidationError(f"Silo '{from_silo_id}' is on cooldown")
             
             # Validate target exists and is enemy-owned
-            target_site = None
-            all_factions = {faction.id: faction for faction in simulation_state.factions.values()}
-            
-            for fid, fac in all_factions.items():
-                for site in fac.sites:
-                    if site.id == target_id and site.type in ["city", "silo"]:
-                        target_site = site
-                        break
-                if target_site:
-                    break
-            
-            if not target_site:
+            target_node = match_state.nodes.get(target_id)
+            if not target_node:
                 raise ActionValidationError(f"Target '{target_id}' not found")
             
-            if target_site.destroyed:
+            if target_node.type not in [EntityType.CITY, EntityType.SILO]:
+                raise ActionValidationError(f"Target '{target_id}' is not a valid target (must be city or silo)")
+            
+            if target_node.status != "active":
                 raise ActionValidationError(f"Target '{target_id}' is destroyed")
             
-            if target_site.owner == faction.id:
+            if target_node.owner == faction.id:
                 raise ActionValidationError(f"Cannot target own site '{target_id}'")
             
         else:
@@ -142,8 +136,8 @@ class ActionParser:
 # Convenience function for external use
 def parse_and_validate_action(
     raw_response: str,
-    faction: 'Faction',
-    simulation_state: 'SimulationState'
+    faction: Faction,
+    match_state: MatchState
 ) -> Tuple[Dict, Optional[str]]:
     """Parse and validate agent action (convenience function)."""
-    return ActionParser.parse_and_validate_action(raw_response, faction, simulation_state)
+    return ActionParser.parse_and_validate(raw_response, faction, match_state)

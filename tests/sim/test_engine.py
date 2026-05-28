@@ -155,7 +155,7 @@ def test_invalid_launch_actions():
             engine.last_tick_time -= engine.tick_interval  # Move back in time by one tick interval
             engine.update()
     
-    # Now try to launch again (should fail due to no ammo)
+    # Now try to launch again (should fail due to faction being crippled - no launch-capable silos)
     events = engine.apply_faction_action("red", {
         "type": "launch",
         "from": red_silo,
@@ -166,7 +166,7 @@ def test_invalid_launch_actions():
     event = events[0]
     assert event["type"] == "invalid_action"
     assert event["faction_id"] == "red"
-    assert "no ammo" in event["details"]["reason"]
+    assert "crippled and has no launch capability" in event["details"]["reason"]
     
     print("✓ Invalid launch actions test passed")
 
@@ -202,15 +202,18 @@ def test_missile_flight_and_impact():
     initial_city_hp = match_state.nodes[blue_city].hp
     assert initial_city_hp == Constants.CITY_HP
     
-    # Advance ticks until impact (should be MISSILE_FLIGHT_TIME_TICKS ticks)
+    # Advance ticks until impact (should be MISSILE_FLIGHT_TIME_TICKS + 1 ticks due to tick increment at end of advance_tick)
     impact_tick = Constants.MISSILE_FLIGHT_TIME_TICKS
-    for i in range(impact_tick):
+    for i in range(impact_tick + 1):  # +1 because tick increments after missile check
+        # Manipulate last_tick_time to simulate time passage since update() checks real time
+        engine.last_tick_time -= engine.tick_interval  # Move back in time by one tick interval
         events = engine.update()
         # Check for impact event around the expected time
-        if i >= impact_tick - 2:  # Check a couple ticks before expected impact
+        if i >= impact_tick - 1:  # Check a couple ticks before expected impact
             impact_events = [e for e in events if e["type"] == "impact"]
-            if impact_events:
-                print(f"Impact detected at tick {match_state.tick}")
+            destruction_events = [e for e in events if e["type"] == "destruction"]
+            if impact_events or destruction_events:
+                print(f"Impact/destruction detected at tick {match_state.tick}")
                 break
     
     # After impact, city should be destroyed (HP = 0)
@@ -295,7 +298,7 @@ def test_match_end_conditions():
     # Destroy all cities for one faction except red
     for faction_id in ["blue", "green", "yellow"]:
         for node_id, node in match_state.nodes.items():
-            if node.owner == faction_id and node.type == "city":
+            if node.owner == faction_id and node.type.value == "city":
                 node.hp = 0
                 node.status = "destroyed"
                 node.population = 0
