@@ -12,6 +12,37 @@ This file explains:
 - how to keep project history, lessons, and commits up to date
 
 ---
+## PERSONAL DEV JOURNAL - LANE A (Simulation Core & Scripted Controllers)
+
+**Current Focus**: Executing Lane A - deterministic simulation engine, state models, rules, scoring, and scripted bot players
+**Started**: $(date)
+**Human Owner**: Simulation correctness and deterministic behavior
+**Primary Directories**: src/sim/, src/bots/, tests/sim/, data/scenarios/
+
+**Current Progress**:
+- [x] Read SPEC.md (core specification)
+- [x] Read development-proposal.md (three-lane execution plan)
+- [x] Read phase-0-scope.md (MVP scope lock)
+- [ ] Read phase-1-simulation.md (headless simulation work)
+- [ ] Implement deterministic simulation engine
+- [ ] Create state models for factions, cities, silos, missiles
+- [ ] Implement tick stepping and action resolution
+- [ ] Implement missile travel and impact logic
+- [ ] Create scripted bot policies
+- [ ] Build deterministic seeded match driver
+- [ ] Implement canonical event emission
+- [ ] Create snapshot generation hooks for replay
+
+**Validation Focus**:
+- Same seed + same actions => same outcome
+- Invalid actions do not corrupt state
+- Impacts happen at correct tick
+- Crippled vs eliminated rules match spec
+- Replay events and snapshots are complete enough for later consumers
+
+**Notes & Lessons**:
+
+---
 
 ## 1. Project mission
 
