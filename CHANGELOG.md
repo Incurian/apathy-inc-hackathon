@@ -45,6 +45,12 @@ Use it for:
 - Validation: Reviewed the agent-interface section of the spec and the Phase 5 plan, then aligned both documents around the same MCP-first integration model.
 - Remaining limitation/risk: This is still a planning-level decision; the actual MCP tool surface and adapter implementation remain future work.
 
+## 2026-05-28 12:47 - Development parallelization proposal added
+- Summary: Added a proposal for splitting work among three team members using agent swarms, including interface-first parallel development approach and alternative schemes.
+- Files/subsystems: `docs/development-proposal.md`
+- Validation: Reviewed the proposal for clarity and completeness; verified it addresses the team's parallelization question.
+- Remaining limitation/risk: This is a planning document; actual implementation would require agreeing on interface contracts first.
+
 ## 2026-05-28 09:02 - Core MVP design decisions locked in docs
 - Summary: Tightened the planning package by resolving the major open ambiguities before implementation: exact MVP constants, single-action turn schema, no-fog information model, explicit crippled vs eliminated semantics, concrete lifecycle semantics, concrete replay minimums, and a real MCP tool contract for agent players.
 - Files/subsystems: `SPEC.md`, `docs/phases/phase-0-scope.md`, `docs/phases/phase-1-simulation.md`, `docs/phases/phase-3-api.md`, `docs/phases/phase-5-agent-adapter.md`, `AGENTS.md`
