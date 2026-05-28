@@ -21,6 +21,12 @@ Use it for:
 
 ---
 
+## 2026-05-28 12:55 - Development proposal tightened for three-person execution
+- Summary: Revalidated and rewrote the development proposal so it now gives an execution-ready three-lane split for three human leads using agent swarms, with humans explicitly owning contract decisions, validation, testing, and integration checkpoints.
+- Files/subsystems: `docs/development-proposal.md`, `docs/phases/phase-0-scope.md`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `notes/lessonslearned.md`
+- Validation: Reviewed the proposal against `SPEC.md` sections covering replay, MCP agent contracts, and the spectator API; corrected stale references; aligned the proposal and phase-0 planning docs with the repo's phase discipline and human validation gates.
+- Remaining limitation/risk: This is still planning-level guidance; the team still needs to freeze concrete example payloads and enforce the checkpoint cadence during implementation.
+
 ## 2026-05-28 08:50 - Planning doc set established
 - Summary: Created the initial planning package for the DEFCON-inspired hackathon project, including the project overview, detailed specification, and phase-by-phase execution plans.
 - Files/subsystems: `README.md`, `AGENTS.md`, `SPEC.md`, `docs/phases/phase-0-scope.md`, `docs/phases/phase-1-simulation.md`, `docs/phases/phase-2-bots.md`, `docs/phases/phase-3-api.md`, `docs/phases/phase-4-observer-ui.md`, `docs/phases/phase-5-agent-adapter.md`, `docs/phases/phase-6-polish-and-demo.md`

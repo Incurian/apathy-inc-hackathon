@@ -15,6 +15,7 @@ This phase exists to prevent the common hackathon failure mode of starting with 
 - initial file/module plan
 - ranked backlog: MVP / should-have / stretch
 - named owner for each early subsystem
+- agreed three-lane execution plan with human validation checkpoints
 
 ## Required outputs
 
@@ -29,6 +30,8 @@ By the end of this phase, the team should have a written answer for all of the f
 7. What is the lifecycle state model?
 8. What MCP tools will agent players use?
 9. What are the first three stretch goals to cut if time slips?
+10. What are the exact shared contracts that let the three work lanes proceed in parallel?
+11. Which human owns each lane, and what are the required integration checkpoints?
 
 ## Recommended work sequence
 
@@ -72,9 +75,10 @@ Lock the MVP replay contract early:
 - snapshots are stored every 4 ticks (once per second)
 - latest replay should expose match metadata, ordered events, snapshots, and final state
 
-### Step 0.6 — Freeze lifecycle and MCP contracts, then rank backlog
+### Step 0.6 — Freeze lifecycle, API, replay, and MCP contracts
 Lock:
 - lifecycle states: `idle`, `running`, `paused`, `finished`
+- spectator API baseline: `/api/state`, lifecycle endpoints, and `/api/replay/latest`
 - agent-player MCP tools: `get_faction_observation(faction_id)` and `submit_faction_action(faction_id, action, comment?)`
 - MVP information model: no fog of war; all factions receive the same public strategic state
 
@@ -83,6 +87,18 @@ Then sort everything into:
 - post-MVP nice-to-have
 - stretch/cut-first
 
+### Step 0.7 — Assign the three human work lanes and validation cadence
+Before implementation begins, name the three primary human owners and make the split explicit.
+Recommended lane split:
+- simulation core + scripted bots
+- spectator API + observer UI
+- agent adapter + integration/failure-path validation
+
+Also lock:
+- who owns each directory or subsystem seam
+- which shared contracts require human approval before changing
+- what evidence each lane must show at the next checkpoint
+- how often humans stop to review agent-generated work
 ## Human validation gates
 
 ### Gate A — Fantasy alignment

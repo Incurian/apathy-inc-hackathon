@@ -40,8 +40,9 @@ When beginning any task:
 2. read `SPEC.md`
 3. identify the current phase
 4. read the matching phase doc in `docs/phases/`
-5. check `CHANGELOG.md` for the latest state of work
-6. check `notes/lessonslearned.md` for known pitfalls, strategy updates, and model behavior lessons
+5. if coordinating multiple humans or agent swarms, read `docs/development-proposal.md`
+6. check `CHANGELOG.md` for the latest state of work
+7. check `notes/lessonslearned.md` for known pitfalls, strategy updates, and model behavior lessons
 
 Do **not** jump straight into implementation without locating the current phase and constraints first.
 
@@ -126,6 +127,12 @@ Use for:
 - fallback planning
 - rehearsal and cut-line decisions
 
+### `docs/development-proposal.md`
+Use for:
+- splitting work across three humans using agent swarms
+- defining which work can proceed in parallel after contracts are frozen
+- clarifying that humans own decisions, validation, testing, and integration checkpoints
+
 ### `CHANGELOG.md`
 Purpose:
 - durable running record of meaningful project changes
@@ -200,9 +207,9 @@ Read:
 1. `AGENTS.md`
 2. `SPEC.md`
 3. `docs/phases/phase-0-scope.md`
-4. `CHANGELOG.md`
-5. `notes/lessonslearned.md`
-
+4. `docs/development-proposal.md` if multiple humans/agent swarms will work in parallel
+5. `CHANGELOG.md`
+6. `notes/lessonslearned.md`
 ### If you are implementing simulation/backend logic
 Read:
 1. `AGENTS.md`

@@ -31,6 +31,7 @@ That means if the team runs out of time, you can still demo:
 - `docs/phases/phase-4-observer-ui.md` — browser spectator UI
 - `docs/phases/phase-5-agent-adapter.md` — LLM/agent player integration
 - `docs/phases/phase-6-polish-and-demo.md` — final polish, demo choreography, and contingency prep
+- `docs/development-proposal.md` — recommended three-person execution split: human-owned decisions/validation with agent-heavy implementation lanes
 - `CHANGELOG.md` — running record of meaningful project changes
 - `notes/lessonslearned.md` — tactical team memory: pitfalls, model lessons, and demo observations
 - `src/`, `web/`, `tests/`, `scripts/`, `data/` — implementation scaffold only; these are placeholders for upcoming work

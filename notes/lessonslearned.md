@@ -23,6 +23,12 @@ This is not polished release documentation. It is tactical team memory.
 
 ---
 
+## 2026-05-28 12:55 - Three-human parallelism works best when humans own the checkpoints
+- Context: The repo needed a concrete proposal for how three teammates should work in parallel when agents are doing most of the implementation.
+- Observation: The highest-value split is not three arbitrary coding buckets. It is one human protecting the deterministic sim, one protecting the observer product, and one protecting the agent boundary and integration quality, while all contract changes and validation gates stay human-owned.
+- Why it mattered: Without that division, one lane becomes overloaded, schema drift shows up late, and teams over-delegate product decisions to agents.
+- Adjustment going forward: Use contract-first parallelization, freeze example payloads early, assign clear lane ownership, and treat humans as the decision/test/integration layer rather than just extra prompt operators.
+
 ## 2026-05-28 08:50 - Smaller models struggled badly with graphics-library front ends
 - Context: A separate bakeoff repo was used to test a weaker model on five browser demos using Vanilla SVG, p5.js, PixiJS, three.js, and A-Frame.
 - Observation: The only version that even reliably rendered a visible picture was the plain JS/SVG-style implementation. The library-driven demos failed substantially due to bad API usage, invented features, weak validation, and not truly reading the backend contract.
