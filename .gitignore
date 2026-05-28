@@ -9,3 +9,4 @@ build/
 .DS_Store
 data/replays/*
 !data/replays/.gitkeep
+.nexus3/
