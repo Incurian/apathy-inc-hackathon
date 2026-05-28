@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEFCON Spectator</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <h1>DEFCON Spectator</h1>
+            <span class="match-id" id="matchId">No Match</span>
+        </div>
+        <div class="header-center">
+            <div class="timer" id="timer">--:--</div>
+            <div class="lifecycle-badge" id="lifecycleBadge">IDLE</div>
+        </div>
+        <div class="header-right">
+            <div class="leading-faction" id="leadingFaction">--</div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="map-container" id="mapContainer">
+            <svg id="mapSvg" class="map-svg" viewBox="0 0 800 600"></svg>
+            <div class="map-overlay" id="mapOverlay"></div>
+        </div>
+
+        <aside class="sidebar">
+            <div class="panel scoreboard-panel" id="scoreboardPanel">
+                <h2>Factions</h2>
+                <div class="scoreboard" id="scoreboard"></div>
+            </div>
+
+            <div class="panel inspector-panel" id="inspectorPanel">
+                <h2>Inspector <span class="inspector-close" id="inspectorClose">&times;</span></h2>
+                <div class="inspector-content" id="inspectorContent">
+                    <p class="inspector-empty">Click a faction, city, silo, or missile to inspect</p>
+                </div>
+            </div>
+
+            <div class="panel events-panel" id="eventsPanel">
+                <h2>Event Log</h2>
+                <div class="events-list" id="eventsList"></div>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="controls">
+        <div class="controls-left">
+            <button class="btn btn-primary" id="btnStart" title="Start new match">Start</button>
+            <button class="btn btn-warning" id="btnPause" title="Pause match" disabled>Pause</button>
+            <button class="btn btn-success" id="btnResume" title="Resume match" disabled>Resume</button>
+            <button class="btn btn-danger" id="btnReset" title="Reset to idle">Reset</button>
+        </div>
+        <div class="controls-right">
+            <label class="speed-control">
+                Speed: <select id="speedSelect"><option value="1">1x</option><option value="2">2x</option></select>
+            </label>
+        </div>
+    </footer>
+
+    <script src="/static/js/map.js?v=2"></script>
+    <script src="/static/js/panels.js?v=2"></script>
+    <script src="/static/js/app.js?v=2"></script>
+</body>
+</html>

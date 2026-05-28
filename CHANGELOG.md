@@ -21,6 +21,12 @@ Use it for:
 
 ---
 
+## 2026-05-28 14:30 - Lane B: Spectator API and Observer UI implemented
+- Summary: Implemented complete Spectator API (Phase 3) and Observer UI (Phase 4) vertical slice. Backend exposes /api/state, lifecycle endpoints (start/pause/resume/reset), and /api/replay/latest. Frontend provides strategic map with SVG rendering, missile animation, faction scoreboard, event log, and click-to-inspect panels.
+- Files/subsystems: src/api/main.py, src/api/fixtures.py, web/index.html, web/css/style.css, web/js/map.js, web/js/panels.js, web/js/app.js, scripts/smoke/test_api_client.py, requirements.txt
+- Validation: All smoke tests pass - API schema validation, lifecycle transitions, invalid transition rejection, replay endpoint, UI serving
+- Remaining limitation/risk: Backend uses mock fixtures; needs integration with Lane A simulation for live data. WebSocket support not implemented (polling only).
+
 ## 2026-05-28 12:55 - Development proposal tightened for three-person execution
 - Summary: Revalidated and rewrote the development proposal so it now gives an execution-ready three-lane split for three human leads using agent swarms, with humans explicitly owning contract decisions, validation, testing, and integration checkpoints.
 - Files/subsystems: `docs/development-proposal.md`, `docs/phases/phase-0-scope.md`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, `notes/lessonslearned.md`

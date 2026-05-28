@@ -23,6 +23,12 @@ This is not polished release documentation. It is tactical team memory.
 
 ---
 
+## 2026-05-28 14:30 - FastAPI TestClient enables reliable API testing without live server
+- Context: Running uvicorn in background in CI/automated environments was unreliable - server would start then immediately shut down due to stdin/EOF issues in non-interactive shells.
+- Observation: FastAPI's TestClient (using httpx) allows full API testing including lifecycle transitions, schema validation, and error cases without needing a live server process.
+- Why it mattered: Enables reliable smoke tests in any environment, critical for CI/CD and validation gates.
+- Adjustment going forward: Use TestClient for all API validation; only run live server for manual UI testing.
+
 ## 2026-05-28 12:55 - Three-human parallelism works best when humans own the checkpoints
 - Context: The repo needed a concrete proposal for how three teammates should work in parallel when agents are doing most of the implementation.
 - Observation: The highest-value split is not three arbitrary coding buckets. It is one human protecting the deterministic sim, one protecting the observer product, and one protecting the agent boundary and integration quality, while all contract changes and validation gates stay human-owned.
