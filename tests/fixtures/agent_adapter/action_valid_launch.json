@@ -1,0 +1,8 @@
+{
+  "action": {
+    "type": "launch",
+    "from": "red-silo-1",
+    "target": "blue-city-1"
+  },
+  "comment": "Attempting to reduce enemy population while preserving ammo efficiency."
+}

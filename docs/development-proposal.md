@@ -176,7 +176,7 @@ Humans should also check in or at least write down **example payloads** early. T
 
 ### Lane C — Agent adapter, mixed-control integration, and failure-path testing
 
-**Human owner focus:** safe agent integration, contract enforcement, cross-lane validation
+**Human owner focus:** safe agent integration, contract enforcement, cross-lane validation, demo reliability
 
 **Primary directories:**
 - `src/agent_adapter/`
@@ -184,31 +184,89 @@ Humans should also check in or at least write down **example payloads** early. T
 - `scripts/demo/` for agent/demo helpers if needed
 
 **Owns:**
-- MCP-facing observation builder
-- strict action parser and validator
-- timeout/parse/illegal-action fallback behavior
-- decision-attempt logging
-- mixed-controller integration path
-- regression tests for valid and invalid agent behavior
-- fixtures and harnesses for observation/action contract validation
+
+#### MCP-facing observation builder (SPEC.md §14)
+- Build the exact observation payload from `SPEC.md` lines 423-458
+- Filter world state to `self` faction perspective while keeping full public strategic view (no fog of war MVP)
+- Include: match metadata (matchId, tick, timeRemainingSec), self faction state (id, population, score, status, sites), world factions, targets (cities/silos with hp/value), missiles in flight (owner, target, etaSec), recentEvents, legalActions
+- legalActions must enumerate valid launch options per silo with allowedTargets array
+- Output must be compact enough for weaker models (~2-3KB max)
+
+#### Strict action parser and validator (SPEC.md §14)
+- Parse exactly one top-level `action` object (not an array)
+- Validate action type is `hold` or `launch`
+- For launch: validate `from` references an active silo owned by faction, `target` is in allowedTargets, silo has ammo > 0 and cooldown == 0
+- Reject: invalid JSON, empty response, wrong schema, references to destroyed/inactive entities, actions from crippled faction sites
+- All validation errors must be logged with factionId, tick, rawResponse, errorReason
+
+#### Timeout/parse/illegal-action fallback behavior (SPEC.md §14 lines 473-476)
+- Parse failure => automatic `hold` + log
+- Timeout (configurable, default 5s) => automatic `hold` + log
+- Invalid action => ignored, logged, treated as `hold`
+- Decision attempt logging must capture: factionId, tick, observationSummary, rawResponse, parsedActionOrFailure, latencyMs
+
+#### Decision-attempt logging (Phase 5.5)
+- Persist to replay/event log for post-match inspection
+- Include enough context to debug: what the agent saw, what it returned, what happened
+- Surface latest valid/invalid action summaries to observer UI (Phase 5.6)
+
+#### Mixed-controller integration path
+- Control mode per faction: `scripted`, `agent`, `human-debug` (SPEC.md line 153)
+- Same controller interface used by simulation for both scripted bots and agent adapters (Contract #3)
+- Simulation asks for one action per decision window; adapter returns valid action or safe hold/no-op
+- Multiple agent-backed factions can coexist with scripted factions in same match
+
+#### Regression tests for valid and invalid agent behavior (Phase 5 Machine validation)
+- Malformed agent output does not crash engine
+- Timeout leads to hold/no-op behavior
+- Invalid actions are logged and rejected
+- Valid parsed single action applied exactly once
+- MCP-facing adapter exposes required tool contract cleanly
+- Mixed controller modes coexist in one match
+
+#### Fixtures and harnesses for observation/action contract validation
+- Checked-in mock observation payloads (matching SPEC.md example exactly)
+- Checked-in valid action payload examples
+- Checked-in invalid action payload examples (malformed JSON, wrong type, illegal target, etc.)
+- Harness to run adapter against fixtures without full simulation
+- Harness to run adapter integrated with simulation for N ticks
 
 **Should deliver:**
-- an agent control path that cannot bypass engine validation
-- safe degradation to hold/no-op on malformed output or timeouts
-- mixed-control matches where scripted and agent-backed factions coexist cleanly
-- integration tests that prove the adapter does not destabilize the simulation
+- An agent control path that cannot bypass engine validation (all actions go through simulation's controller hook)
+- Safe degradation to hold/no-op on malformed output, timeouts, or illegal actions
+- Mixed-control matches where scripted and agent-backed factions coexist cleanly
+- Integration tests that prove the adapter does not destabilize the simulation
+- MCP tool surface: `get_faction_observation(faction_id)` and `submit_faction_action(faction_id, action, comment?)` (SPEC.md lines 408-412)
+- Decision logging visible in replay and optionally in observer UI
+- One successful agent-controlled faction in a full match (MVP exit criteria)
 
 **Should not own:**
-- authority over simulation rules
-- UI rendering decisions except where agent activity needs exposure in the observer
-- ad hoc schema changes without human approval from the contract owners
+- Authority over simulation rules (Lane A owns)
+- UI rendering decisions except where agent activity needs exposure in the observer (Lane B owns)
+- Ad hoc schema changes without human approval from the contract owners
+- Direct engine state mutation — adapter is a boundary, not a backdoor
+- Agent model selection or prompting strategy (those are replaceable behind the MCP tool interface)
 
 **Human validation focus:**
-- malformed output never crashes the match
-- legal actions are applied exactly once
-- invalid actions are rejected and logged clearly
-- observation payloads are small enough for weaker models
-- the adapter remains a boundary, not a backdoor into the engine
+- Malformed output never crashes the match (Gate A validation)
+- Legal actions are applied exactly once
+- Invalid actions are rejected and logged clearly with actionable context
+- Observation payloads are small enough for weaker models (Gate A: human verifies schema size)
+- The adapter remains a boundary, not a backdoor into the engine
+- Gate B: First successful agent turn — human verifies integration feels real, fallback behavior is safe
+- Gate C: One mixed-control match — human verifies system stable when agent behaves badly, demo still works if only one agent reliable
+
+**Key files to create/own:**
+- `src/agent_adapter/observation_builder.py` — builds SPEC-compliant observation
+- `src/agent_adapter/action_parser.py` — strict parser with validation
+- `src/agent_adapter/fallback.py` — timeout/parse/illegal-action handling
+- `src/agent_adapter/logging.py` — decision attempt persistence
+- `src/agent_adapter/mcp_tools.py` — MCP tool implementations
+- `src/agent_adapter/adapter.py` — main adapter class plugging into simulation controller hook
+- `tests/integration/test_agent_adapter.py` — contract validation tests
+- `tests/integration/test_mixed_control.py` — scripted + agent faction coexistence
+- `tests/integration/test_failure_paths.py` — malformed/timeout/invalid action handling
+- `scripts/demo/agent_smoke.py` — quick validation script for demo prep
 
 ## Why this split is better than the original version
 

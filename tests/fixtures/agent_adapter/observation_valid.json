@@ -1,0 +1,89 @@
+{
+  "match": {
+    "matchId": "match-001",
+    "tick": 120,
+    "timeRemainingSec": 214
+  },
+  "self": {
+    "factionId": "red",
+    "population": 240,
+    "score": 180,
+    "status": "active",
+    "sites": [
+      {
+        "id": "red-silo-1",
+        "type": "silo",
+        "owner": "red",
+        "x": 100,
+        "y": 200,
+        "hp": 100,
+        "ammo": 6,
+        "cooldown": 0,
+        "active": true
+      },
+      {
+        "id": "red-city-1",
+        "type": "city",
+        "owner": "red",
+        "x": 150,
+        "y": 250,
+        "hp": 100,
+        "population": 100,
+        "active": true
+      }
+    ]
+  },
+  "world": {
+    "factions": [
+      {
+        "id": "blue",
+        "status": "active",
+        "population": 180,
+        "score": 120
+      }
+    ],
+    "targets": [
+      {
+        "id": "blue-city-1",
+        "owner": "blue",
+        "type": "city",
+        "hp": 100,
+        "value": 100
+      },
+      {
+        "id": "blue-silo-1",
+        "owner": "blue",
+        "type": "silo",
+        "hp": 100,
+        "value": 25
+      }
+    ],
+    "missiles": [
+      {
+        "id": "m-14",
+        "owner": "green",
+        "source": "green-silo-1",
+        "target": "red-city-2",
+        "etaSec": 4
+      }
+    ]
+  },
+  "recentEvents": [
+    {
+      "tick": 116,
+      "type": "impact",
+      "target": "red-city-1",
+      "damage": 40
+    }
+  ],
+  "legalActions": [
+    {
+      "type": "hold"
+    },
+    {
+      "type": "launch",
+      "from": "red-silo-1",
+      "allowedTargets": ["blue-city-1", "blue-silo-1"]
+    }
+  ]
+}
