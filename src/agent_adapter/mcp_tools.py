@@ -132,12 +132,9 @@ async def get_faction_observation(arguments: dict) -> list[types.TextContent]:
     try:
         # Build observation using current simulation state
         observation = build_observation(
-            match_id=_simulation_state.match_id,
-            tick=_simulation_state.tick,
-            time_remaining_sec=_simulation_state.time_remaining_sec,
-            factions=_simulation_state.factions,
+            match_state=_simulation_state,
             requesting_faction_id=faction_id,
-            events=getattr(_simulation_state, 'recent_events', [])
+            recent_events=getattr(_simulation_state, 'recent_events', [])
         )
         
         return [types.TextContent(
@@ -208,12 +205,9 @@ async def submit_faction_action(arguments: dict) -> list[types.TextContent]:
             faction_id=faction_id,
             tick=_simulation_state.tick,
             observation=build_observation(  # Build current observation for logging
-                match_id=_simulation_state.match_id,
-                tick=_simulation_state.tick,
-                time_remaining_sec=_simulation_state.time_remaining_sec,
-                factions=_simulation_state.factions,
+                match_state=_simulation_state,
                 requesting_faction_id=faction_id,
-                events=getattr(_simulation_state, 'recent_events', [])
+                recent_events=getattr(_simulation_state, 'recent_events', [])
             ),
             raw_response=raw_response,
             start_time=start_time,

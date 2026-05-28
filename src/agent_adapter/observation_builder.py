@@ -6,7 +6,7 @@ Based on SPEC.md Section 14: Agent Player Interface (lines 423-458).
 
 from typing import Dict, List, Optional
 from .models import Observation, Site, FactionState, WorldFaction, Target, Missile, Event, LegalAction
-from ..sim.models import MatchState, Faction, Node, Missile as SimMissile, EntityType, Constants
+from sim.models import MatchState, Faction, Node, Missile as SimMissile, EntityType, Constants
 
 
 class ObservationBuilder:

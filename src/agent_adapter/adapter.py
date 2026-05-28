@@ -12,7 +12,7 @@ from .observation_builder import build_observation
 from .action_parser import parse_and_validate_action
 from .fallback import handle_agent_response
 from .logging import log_decision
-from ..sim.models import MatchState
+from sim.models import MatchState
 import time
 
 logger = logging.getLogger(__name__)

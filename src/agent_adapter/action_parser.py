@@ -5,7 +5,7 @@ Based on SPEC.md Section 14: Agent Player Interface.
 
 from typing import Dict, List, Optional, Tuple
 from .models import Action
-from ..sim.models import MatchState, Faction, Node, EntityType
+from sim.models import MatchState, Faction, Node, EntityType
 
 
 class ActionParseError(Exception):
