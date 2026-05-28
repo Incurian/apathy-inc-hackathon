@@ -1,0 +1,48 @@
+# lessonslearned.md
+
+This file captures practical lessons, mistakes, prompt insights, model capability observations, and demo/operator notes.
+
+Use it for:
+- things that wasted time
+- frameworks/models that proved unreliable
+- prompt structures that worked or failed
+- validation gaps that let bad work slip through
+- demo observations from humans watching the product
+
+This is not polished release documentation. It is tactical team memory.
+
+## Entry template
+
+```md
+## YYYY-MM-DD HH:MM - Short lesson
+- Context:
+- Observation:
+- Why it mattered:
+- Adjustment going forward:
+```
+
+---
+
+## 2026-05-28 08:50 - Smaller models struggled badly with graphics-library front ends
+- Context: A separate bakeoff repo was used to test a weaker model on five browser demos using Vanilla SVG, p5.js, PixiJS, three.js, and A-Frame.
+- Observation: The only version that even reliably rendered a visible picture was the plain JS/SVG-style implementation. The library-driven demos failed substantially due to bad API usage, invented features, weak validation, and not truly reading the backend contract.
+- Why it mattered: This strongly suggests the hackathon project should not depend on weaker models inventing complex graphics integrations from scratch.
+- Adjustment going forward: Prefer plain HTML/CSS/JS and SVG for the main observer UI, keep 3D and non-native graphics as stretch goals, and give weaker models narrow, scaffolded tasks only.
+
+## 2026-05-28 08:50 - The product should be the sim plus observer, not the LLM layer alone
+- Context: Planning for the hackathon emphasized demo resilience under time pressure and model unreliability.
+- Observation: If the simulation, spectator UI, and replay exist, the project is still real and demoable even when live agent play is flaky.
+- Why it mattered: This changes architecture and schedule priorities. Scripted bots and replay become core requirements rather than backups.
+- Adjustment going forward: Build in this order: deterministic sim -> scripted bots -> observer API -> observer UI -> agent adapter -> polish.
+
+## 2026-05-28 08:55 - Scaffolding without code is worth doing explicitly
+- Context: The goal was to prepare the repo for a hackathon build without accidentally “cheating” by pre-implementing core systems.
+- Observation: A clear folder layout plus front-door documentation meaningfully lowers startup friction while still keeping the actual implementation work fair game for the hackathon.
+- Why it mattered: Without this, later agents or humans are more likely to waste time debating folder structure, mixing phases, or starting code in the wrong place.
+- Adjustment going forward: It is worth doing early repo structure, phase-aligned placeholders, and workflow docs before implementation starts, as long as those placeholders are explicitly marked as non-code scaffolding.
+
+## 2026-05-28 08:57 - Keep agent integration behind MCP-shaped boundaries
+- Context: The project needs AI-controlled factions, but direct engine coupling would make the simulation harder to validate and easier to destabilize.
+- Observation: Framing the agent-player interface as MCP-first forces a cleaner separation between the authoritative backend and agent controllers.
+- Why it mattered: This improves safety, inspectability, and swapability, and it matches the larger agent-tooling theme of the hackathon.
+- Adjustment going forward: Treat agent players as clients of a small MCP-facing tool surface or thin MCP-compatible adapter, never as code that reaches directly into engine state.
