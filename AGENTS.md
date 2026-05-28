@@ -23,15 +23,17 @@ This file explains:
 - [x] Read SPEC.md (core specification)
 - [x] Read development-proposal.md (three-lane execution plan)
 - [x] Read phase-0-scope.md (MVP scope lock)
-- [ ] Read phase-1-simulation.md (headless simulation work)
-- [ ] Implement deterministic simulation engine
-- [ ] Create state models for factions, cities, silos, missiles
-- [ ] Implement tick stepping and action resolution
-- [ ] Implement missile travel and impact logic
-- [ ] Create scripted bot policies
-- [ ] Build deterministic seeded match driver
-- [ ] Implement canonical event emission
-- [ ] Create snapshot generation hooks for replay
+- [x] Read phase-1-simulation.md (headless simulation work)
+- [x] Implement deterministic simulation engine
+- [x] Create state models for factions, cities, silos, missiles
+- [x] Implement tick stepping and action resolution
+- [x] Implement missile travel and impact logic
+- [x] Create scripted bot policies
+- [x] Build deterministic seeded match driver
+- [x] Implement canonical event emission
+- [x] Create snapshot generation hooks for replay
+- [x] Create simple, aggressive, and defensive bot implementations
+- [x] Test bot integration with simulation engine
 
 **Validation Focus**:
 - Same seed + same actions => same outcome
