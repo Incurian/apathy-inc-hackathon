@@ -58,7 +58,7 @@ class SpectatorApp {
             const response = await fetch(`${API_BASE}${endpoint}`, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: body ? JSON.stringify(body) : null
+                body: method !== 'GET' ? JSON.stringify(body ?? {}) : null
             });
             
             if (!response.ok) {

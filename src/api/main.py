@@ -2,10 +2,7 @@
 Spectator API - Backend service exposing simulation state to the observer UI.
 """
 
-import time
-import uuid
 from contextlib import asynccontextmanager
-from datetime import datetime
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -14,71 +11,17 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from .fixtures import (
-    create_finished_state,
-    create_idle_state,
-    create_mock_match_state,
-    create_mock_replay,
-    create_paused_state,
-)
+from src.sim.engine import get_engine
 
 
 class LifecycleAction(BaseModel):
     """Request model for lifecycle actions."""
 
 
-match_state = create_idle_state()
-match_history: list[dict[str, Any]] = []
-_match_counter = 0
-
-
-def serialize_state() -> dict[str, Any]:
-    """Return current match state serialized for spectators."""
-    return match_state
-
-
-def transition_to_running() -> dict[str, Any]:
-    """Start a new match from idle or finished state."""
-    global match_state, match_history, _match_counter
-    _match_counter += 1
-    match_state = create_mock_match_state()
-    match_state["match"]["matchId"] = f"match-{_match_counter:03d}"
-    match_state["match"]["startedAt"] = datetime.utcnow().isoformat() + "Z"
-    match_history = []
-    return match_state
-
-
-def transition_to_paused() -> dict[str, Any]:
-    """Pause a running match."""
-    global match_state
-    if match_state["match"]["lifecycleState"] != "running":
-        raise HTTPException(status_code=400, detail="Can only pause a running match")
-    match_state = create_paused_state()
-    return match_state
-
-
-def transition_to_resumed() -> dict[str, Any]:
-    """Resume a paused match."""
-    global match_state
-    if match_state["match"]["lifecycleState"] != "paused":
-        raise HTTPException(status_code=400, detail="Can only resume a paused match")
-    match_state = create_mock_match_state()
-    return match_state
-
-
-def transition_to_idle() -> dict[str, Any]:
-    """Reset to idle state from any state."""
-    global match_state, match_history
-    match_state = create_idle_state()
-    match_history = []
-    return match_state
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
-    global match_state
-    match_state = create_idle_state()
+    engine = get_engine()
     yield
 
 
@@ -106,7 +49,8 @@ async def get_state() -> dict[str, Any]:
     - recent events
     - summary metrics
     """
-    return serialize_state()
+    engine = get_engine()
+    return engine.get_state()
 
 
 @app.post("/api/start")
@@ -117,7 +61,8 @@ async def start_match(action: LifecycleAction) -> dict[str, Any]:
     Valid from: idle, finished
     Creates new match with new matchId.
     """
-    return transition_to_running()
+    engine = get_engine()
+    return engine.start_match()
 
 
 @app.post("/api/pause")
@@ -127,7 +72,11 @@ async def pause_match(action: LifecycleAction) -> dict[str, Any]:
     
     Valid from: running only
     """
-    return transition_to_paused()
+    engine = get_engine()
+    try:
+        return engine.pause_match()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/api/resume")
@@ -137,7 +86,11 @@ async def resume_match(action: LifecycleAction) -> dict[str, Any]:
     
     Valid from: paused only
     """
-    return transition_to_resumed()
+    engine = get_engine()
+    try:
+        return engine.resume_match()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/api/reset")
@@ -148,7 +101,8 @@ async def reset_match(action: LifecycleAction) -> dict[str, Any]:
     Valid from: any state
     Creates fresh match using default scenario.
     """
-    return transition_to_idle()
+    engine = get_engine()
+    return engine.reset_match()
 
 
 @app.get("/api/replay/latest")
@@ -162,6 +116,7 @@ async def get_latest_replay() -> dict[str, Any]:
     - periodic snapshots (every 4 ticks)
     - final state
     """
+    from src.api.fixtures import create_mock_replay
     return create_mock_replay()
 
 
