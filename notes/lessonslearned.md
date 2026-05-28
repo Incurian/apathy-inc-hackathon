@@ -46,3 +46,9 @@ This is not polished release documentation. It is tactical team memory.
 - Observation: Framing the agent-player interface as MCP-first forces a cleaner separation between the authoritative backend and agent controllers.
 - Why it mattered: This improves safety, inspectability, and swapability, and it matches the larger agent-tooling theme of the hackathon.
 - Adjustment going forward: Treat agent players as clients of a small MCP-facing tool surface or thin MCP-compatible adapter, never as code that reaches directly into engine state.
+
+## 2026-05-28 09:02 - Planning docs need exact constants before small teams start coding
+- Context: A review of the planning package found that most of the architecture was solid, but several key rules still existed as ranges or soft suggestions.
+- Observation: The biggest implementation risks were not high-level concept problems; they were unresolved details like single-action vs multi-action turns, elimination semantics, lifecycle states, and whether agent integration was truly MCP-backed.
+- Why it mattered: Small teams and smaller models lose time fast when they have to invent missing rules mid-implementation.
+- Adjustment going forward: Before coding starts, freeze exact MVP constants, exact API/lifecycle semantics, exact replay minimums, and an exact agent-tool contract. Treat soft ranges as planning debt.

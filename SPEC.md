@@ -76,22 +76,36 @@ Needs to:
 
 ## 5. Game structure
 
-### Recommended MVP match setup
-- 4 factions
+### Canonical MVP match setup
+- 4 factions: Red, Blue, Green, Yellow
 - 2 cities per faction
 - 1 silo per faction
-- optional 1 defense site per faction only if time allows
-- match duration: 5 to 8 minutes
-- simulation tick: 250ms to 500ms
-- decision cadence: one decision per faction every 3 to 5 seconds
+- no defense sites in MVP
+- match duration: 5 minutes
+- simulation tick: 250ms
+- decision cadence: every 16 ticks (4 seconds)
+- missile flight time: 8 seconds flat in MVP
+- silo cooldown: 1 decision window (4 seconds)
+- each city starts with population 100
+- each silo starts with 6 missiles
 
 ### Win condition
 At match end, the winner is the faction with the highest final score.
 
-### Recommended MVP score model
-- surviving population contributes the largest share
-- destroying enemy cities/silos adds smaller bonus points
-- a faction may also be considered defeated if it has no surviving cities or no launch capability
+### Canonical MVP score model
+- final score = total surviving population + 25 points per enemy silo destroyed
+- cities do not grant separate flat bonus points; their importance is already represented by surviving population
+- if scores tie, use these tie-breakers in order:
+  1. more surviving cities
+  2. more surviving silos
+  3. shared draw
+
+### Canonical faction status rules
+- `active`: at least one surviving city and at least one silo with launch capability remaining
+- `crippled`: at least one surviving city but no remaining launch capability
+- `eliminated`: no surviving cities remain, or total surviving population is zero
+- `crippled` factions remain score-eligible and can still win on points at timer end
+- early match end occurs only when exactly one faction still has at least one surviving city
 
 ---
 
@@ -119,7 +133,7 @@ Represent key locations as named map nodes with known screen/world coordinates.
   "x": 420,
   "y": 280,
   "hp": 100,
-  "population": 120,
+  "population": 100,
   "status": "active"
 }
 ```
@@ -227,19 +241,21 @@ Keep the MVP action space very small.
 ```
 
 ### MVP rules
-- each faction may issue at most one action per decision window
+- each faction may issue exactly zero or one action per decision window
 - invalid actions are ignored and logged
 - actions from destroyed or cooling-down silos are invalid
 - if an agent times out or emits invalid JSON, the faction holds for that turn
+- there is no multi-action turn resolution in MVP
 
 ---
 
 ## 10. Simulation rules
 
 ### Tick model
-- The simulation advances on fixed ticks
-- Missile travel is resolved incrementally over time
-- Decision windows happen every N ticks
+- the simulation advances on fixed 250ms ticks
+- missile travel is resolved incrementally over time
+- decision windows happen every 16 ticks (4 seconds)
+- missile flight time is always 32 ticks (8 seconds) in MVP
 
 ### Launch resolution
 When a launch action is accepted:
@@ -256,16 +272,23 @@ Each tick:
 
 ### Impact resolution
 On impact:
-- damage the target
-- destroy the target if hp <= 0
-- reduce city population/value if applicable
+- apply 100 damage to the target
+- cities start with 100 hp and are destroyed on the first successful hit in MVP
+- silos start with 100 hp and are destroyed on the first successful hit in MVP
+- when a city is destroyed, its population becomes 0 immediately
 - update faction score/population
 - emit impact and destruction events
 
+### MVP combat simplifications
+- no splash damage
+- no partial damage carryover beyond the simple 100-hp model
+- no interception or defense resolution in MVP
+- no fog-of-war-driven hidden damage or hidden launches in MVP
+
 ### Elimination
-A faction may become `crippled` or `eliminated` when:
-- all cities are destroyed, or
-- all strategic capacity is gone, depending on final rules chosen
+A faction becomes:
+- `crippled` when it still has at least one surviving city but no launch capability remains
+- `eliminated` only when it has no surviving cities remaining or total surviving population is zero
 
 ---
 
@@ -278,10 +301,11 @@ Record enough information to reconstruct or review a match:
 - event log for all launches, impacts, destructions, invalid actions, and match transitions
 - periodic snapshots or a full tick-state history
 
-### Recommended approach
-- append events continuously
-- store full snapshots every N ticks
+### Canonical MVP replay approach
+- append events continuously in strict chronological order
+- store a full snapshot every 4 ticks (once per second)
 - keep a final replay artifact in memory or on disk for the latest match
+- `/api/replay/latest` should expose match metadata, scenario summary, ordered events, periodic snapshots, and final state
 
 ### Observer benefit
 Replay provides:
@@ -370,21 +394,30 @@ Show:
 ## 14. Agent player interface
 
 Agent players should not manipulate internal game state directly.
-They should connect to the game **via MCP-facing tooling or an MCP-compatible adapter layer**, not by directly importing or mutating the simulation internals.
+They should connect to the game **via MCP tools**, not by directly importing or mutating the simulation internals.
 They receive an observation object and return structured actions.
 
 ### MCP integration requirement
 
 The intended integration model is:
-- the game exposes a small MCP tool surface or an equivalent local adapter that is designed for MCP-connected agents
+- the game exposes a real MCP tool surface for agent-controlled factions
 - agent players connect through that MCP layer to read current faction observations and submit actions
 - the simulation remains backend-authoritative at all times
 - agents must never bypass validation by writing directly into engine state
 
-For MVP, it is acceptable for the actual implementation to use a thin local adapter around the backend as long as that adapter is explicitly shaped for MCP-style request/response interaction and can be surfaced as MCP tools cleanly.
+### Required MVP MCP tool surface
+- `get_faction_observation(faction_id)`
+  - returns the current turn observation for that faction
+- `submit_faction_action(faction_id, action, comment?)`
+  - submits a single action for that faction's current decision window
+- optional later: `get_match_summary()` for commentary or monitoring agents
+
+A thin local adapter may still exist internally during development, but the externally meaningful contract for agent-controlled factions in the final demo path should be these MCP tools.
 
 ### Observation shape
 
+MVP has **no fog of war**.
+All faction agents receive the same full public strategic state, filtered only by which faction is acting as `self`.
 This observation should be what the MCP-facing adapter hands to the agent for its turn.
 
 ```json
@@ -408,8 +441,8 @@ This observation should be what the MCP-facing adapter hands to the agent for it
       {"id": "blue", "status": "active", "population": 180, "score": 120}
     ],
     "targets": [
-      {"id": "blue-city-1", "owner": "blue", "type": "city", "hp": 100, "value": 120},
-      {"id": "blue-silo-1", "owner": "blue", "type": "silo", "hp": 80, "value": 60}
+      {"id": "blue-city-1", "owner": "blue", "type": "city", "hp": 100, "value": 100},
+      {"id": "blue-silo-1", "owner": "blue", "type": "silo", "hp": 100, "value": 25}
     ],
     "missiles": [
       {"id": "m-14", "owner": "green", "target": "red-city-2", "etaSec": 4}
@@ -428,12 +461,11 @@ This observation should be what the MCP-facing adapter hands to the agent for it
 ### Action response shape
 
 This action payload should be what the agent returns through the MCP-facing adapter back to the authoritative backend.
+There is exactly one top-level `action` in MVP, not an action list.
 
 ```json
 {
-  "actions": [
-    {"type": "launch", "from": "red-silo-1", "target": "blue-city-1"}
-  ],
+  "action": {"type": "launch", "from": "red-silo-1", "target": "blue-city-1"},
   "comment": "Attempting to reduce enemy population while preserving ammo efficiency."
 }
 ```
@@ -449,10 +481,10 @@ This action payload should be what the agent returns through the MCP-facing adap
 
 ### Required MVP endpoints
 - `GET /api/state` — full current spectator state
-- `POST /api/start` — initialize and start a new match
-- `POST /api/pause`
-- `POST /api/resume`
-- `POST /api/reset`
+- `POST /api/start` — initialize and start a new running match from idle or finished state
+- `POST /api/pause` — pause a running match
+- `POST /api/resume` — resume a paused match
+- `POST /api/reset` — discard the current match and create a fresh idle match state
 - `GET /api/replay/latest` — latest replay artifact or event log
 
 ### Optional endpoints
@@ -461,8 +493,15 @@ This action payload should be what the agent returns through the MCP-facing adap
 - `GET /api/config`
 - `POST /api/speed` — set playback speed
 
+### Lifecycle semantics
+- lifecycle states are `idle`, `running`, `paused`, and `finished`
+- `POST /api/start` is valid from `idle` or `finished` and creates a new match id
+- `POST /api/pause` is valid only from `running`
+- `POST /api/resume` is valid only from `paused`
+- `POST /api/reset` is valid from any state and creates a fresh idle match using the default/current scenario definition
+
 ### `/api/state` should include
-- match metadata
+- match metadata including lifecycle state and current match id
 - factions
 - nodes/sites
 - missiles

@@ -398,7 +398,7 @@ Commit after each stable checkpoint such as:
 - include a message that says what changed and why
 - do not bundle unrelated cleanup with core work
 
-### If git has not been initialized yet
+### If working in a copy where git is not initialized yet
 - recommend initializing it early
 - until then, keep `CHANGELOG.md` and `notes/lessonslearned.md` especially up to date so project history is not lost
 

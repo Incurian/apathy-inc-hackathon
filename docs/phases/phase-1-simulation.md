@@ -47,7 +47,8 @@ Required initial data:
 - factions
 - nodes/sites with coordinates and hp/population
 - initial ammo and cooldown values
-- match timer/tick settings
+- canonical MVP constants: 5-minute match, 250ms tick, 4-second decision cadence, 8-second missile flight time
+- one-hit combat values: 100 hp for cities and silos, 100 damage per missile
 
 ### Step 1.3 — Implement legal action validation
 Build a pure function or equivalent that checks:
@@ -70,15 +71,20 @@ Every tick should:
 - advance simulation time
 - move missiles or update their progress
 - resolve impacts at arrival
-- reduce HP / population
+- apply one-hit destruction logic for cities and silos in MVP
+- reduce city population to 0 when its city is destroyed
 - emit impact/destruction events
 - update faction status
 - update score
 
 ### Step 1.6 — Implement match end detection
 End the match when:
-- timer expires, or
-- a faction is the only credible survivor according to chosen rules
+- the 5-minute timer expires, or
+- exactly one faction still has at least one surviving city
+
+Remember:
+- factions with surviving cities but no launch capability are `crippled`, not `eliminated`
+- crippled factions remain score-eligible until the match ends
 
 ### Step 1.7 — Determinism and smoke tests
 Add a small test or script that runs a match with scripted actions and verifies repeatability.
@@ -125,9 +131,10 @@ Add a small test or script that runs a match with scripted actions and verifies 
 Required validation examples:
 - same seed + same actions => same outcome
 - invalid launch does not mutate state except for logged error/invalid event if designed
-- a missile launched at tick T impacts at the expected future tick
+- a missile launched at tick T impacts exactly 32 ticks later in MVP
 - destroyed targets remain destroyed
 - eliminated factions do not continue launching
+- crippled factions are still present in score calculations but cannot launch
 
 ## Exit criteria
 

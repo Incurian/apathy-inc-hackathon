@@ -46,16 +46,19 @@ Suggested sections:
 Create one clear serialization layer rather than leaking internal model objects directly.
 
 ### Step 3.3 — Add match lifecycle endpoints
-Support:
-- start new match
-- pause ticking
-- resume ticking
-- reset to initial or fresh scenario
+Support these exact semantics:
+- lifecycle states are `idle`, `running`, `paused`, `finished`
+- `POST /api/start` is valid from `idle` or `finished` and creates a new running match with a new match id
+- `POST /api/pause` is valid only from `running`
+- `POST /api/resume` is valid only from `paused`
+- `POST /api/reset` is valid from any state and creates a fresh idle match using the default/current scenario
 
 ### Step 3.4 — Add replay/history endpoint
 At minimum, expose:
-- latest match event list
-- enough snapshots or current/final state to reconstruct the match meaningfully
+- latest match event list in chronological order
+- snapshots every 4 ticks (once per second)
+- final state
+- enough match/scenario metadata to reconstruct the match meaningfully
 
 ### Step 3.5 — Add smoke scripts
 Write a script or small tests to hit all required endpoints and confirm expected shapes.
@@ -84,6 +87,7 @@ Write a script or small tests to hit all required endpoints and confirm expected
 ### Gate C — Lifecycle controls review
 **Stop and show a human:**
 - start/pause/resume/reset flow
+- lifecycle state transitions
 - how a new match ID or replay state is handled
 
 **Human should verify:**
@@ -94,8 +98,9 @@ Write a script or small tests to hit all required endpoints and confirm expected
 Validate at least:
 - `/api/state` returns valid JSON during a running match
 - `/api/state` changes over time while running and stops changing when paused
-- lifecycle endpoints do not corrupt the match state
-- replay endpoint returns data after a completed match
+- lifecycle endpoints enforce the intended state transitions cleanly
+- `POST /api/start` creates a new match id
+- replay endpoint returns ordered events, periodic snapshots, and final state after a completed match
 - serialization does not expose unserializable internal objects
 
 ## Exit criteria

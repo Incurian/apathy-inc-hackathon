@@ -23,9 +23,12 @@ By the end of this phase, the team should have a written answer for all of the f
 1. What entities exist in MVP?
 2. What actions can a faction take?
 3. How does the game end?
-4. What must the observer be able to see?
-5. What will be recorded for replay?
-6. What are the first three stretch goals to cut if time slips?
+4. What exact MVP constants are frozen?
+5. What must the observer be able to see?
+6. What will be recorded for replay?
+7. What is the lifecycle state model?
+8. What MCP tools will agent players use?
+9. What are the first three stretch goals to cut if time slips?
 
 ## Recommended work sequence
 
@@ -36,12 +39,17 @@ Decide the exact demo framing:
 - observers can inspect actors and recent actions
 
 ### Step 0.2 — Freeze the MVP rules
-Choose the smallest real version:
+Choose the smallest real version and lock the canonical constants:
 - 4 factions
 - 2 cities + 1 silo per faction
 - only `hold` and `launch` actions
-- fixed match timer
-- score based mainly on surviving population
+- no defense sites in MVP
+- 5-minute match timer
+- 250ms simulation tick
+- 4-second decision cadence
+- 8-second missile flight time
+- score based mainly on surviving population plus a small silo-destruction bonus
+- one-hit destruction for cities and silos in MVP
 
 ### Step 0.3 — Freeze the MVP map approach
 Choose one:
@@ -59,12 +67,18 @@ Recommended:
 - SVG-first rendering
 
 ### Step 0.5 — Freeze replay strategy
-Choose one early:
-- event log + snapshots every N ticks
-- or full tick-state history if small enough
+Lock the MVP replay contract early:
+- event log is always recorded in chronological order
+- snapshots are stored every 4 ticks (once per second)
+- latest replay should expose match metadata, ordered events, snapshots, and final state
 
-### Step 0.6 — Rank backlog
-Sort everything into:
+### Step 0.6 — Freeze lifecycle and MCP contracts, then rank backlog
+Lock:
+- lifecycle states: `idle`, `running`, `paused`, `finished`
+- agent-player MCP tools: `get_faction_observation(faction_id)` and `submit_faction_action(faction_id, action, comment?)`
+- MVP information model: no fog of war; all factions receive the same public strategic state
+
+Then sort everything into:
 - MVP
 - post-MVP nice-to-have
 - stretch/cut-first
@@ -87,7 +101,8 @@ Do not continue until the answer is yes.
 **Stop and show a human:**
 - the final list of entity types
 - allowed actions
-- win condition
+- win condition and elimination semantics
+- exact MVP constants
 - what is explicitly out of scope
 
 **Human should answer:**

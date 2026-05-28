@@ -9,9 +9,9 @@ The intended connection model is **MCP-first**: agents should interact with the 
 
 ## Deliverables
 
-- MCP-facing observation/action adapter plan
+- actual MVP MCP tool contract for agent-controlled factions
 - observation builder for a faction
-- action parser/validator
+- single-action parser/validator
 - timeout-safe agent invocation path
 - action/error logging
 - control-mode assignment per faction
@@ -29,12 +29,12 @@ The intended connection model is **MCP-first**: agents should interact with the 
 
 ### Step 5.1 — Freeze MCP-facing observation schema
 Build one compact observation object for a faction.
-This is the payload the MCP tool or MCP-compatible adapter should provide to the agent on its turn.
+This is the payload the MCP tool should provide to the agent on its turn.
 
 It should include:
 - current match metadata
 - faction self-state
-- visible/known target summaries
+- full public strategic target summaries for MVP (no fog of war)
 - recent events
 - legal actions
 
@@ -44,6 +44,8 @@ Require strict JSON with a very small action surface.
 For MVP this should remain:
 - `hold`
 - `launch`
+
+The returned payload should contain exactly one top-level `action`, not an action list.
 
 ### Step 5.3 — Build parser and fallback behavior
 Handle these cases safely:
@@ -55,11 +57,15 @@ Handle these cases safely:
 
 Fallback behavior should be `hold` plus logging.
 
-### Step 5.4 — Build MCP-compatible adapter interface
+### Step 5.4 — Build MCP tool interface and internal adapter boundary
 Support control modes such as:
 - scripted bot
 - agent/LLM player via MCP
 - maybe debug/manual controller
+
+The required MVP MCP tools should be:
+- `get_faction_observation(faction_id)`
+- `submit_faction_action(faction_id, action, comment?)`
 
 ### Step 5.5 — Log decision attempts
 Store for each agent turn:
@@ -80,7 +86,8 @@ If time permits, expose:
 ### Gate A — Observation and action review
 **Stop and show a human:**
 - one actual observation payload
-- one expected valid action payload
+- one expected valid single-action payload
+- the MCP tool names and their request/response shapes
 - the invalid-output fallback behavior
 
 **Human should verify:**
@@ -113,7 +120,8 @@ Validate at least:
 - malformed agent output does not crash the engine
 - timeout leads to hold/no-op behavior
 - invalid actions are logged and rejected
-- a valid parsed action is applied exactly once
+- a valid parsed single action is applied exactly once
+- the MCP-facing adapter exposes the required tool contract cleanly
 - mixed controller modes can coexist in one match
 
 ## Exit criteria
