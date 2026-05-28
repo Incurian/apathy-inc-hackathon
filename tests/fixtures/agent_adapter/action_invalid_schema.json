@@ -1,0 +1,7 @@
+{
+  "action": {
+    "type": "invalid-type",
+    "from": "red-silo-1",
+    "target": "blue-city-1"
+  }
+}

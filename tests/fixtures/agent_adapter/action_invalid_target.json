@@ -1,0 +1,7 @@
+{
+  "action": {
+    "type": "launch",
+    "from": "red-silo-1",
+    "target": "red-city-1"
+  }
+}
